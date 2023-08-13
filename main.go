@@ -22,10 +22,12 @@ func main() {
 		if os.Args[1] == "install" {
 			err = src.Wifi()
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			err = src.PacmanConf()
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			err = src.Format()
@@ -35,27 +37,33 @@ func main() {
 			}
 			err = src.Mount()
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			err = src.Pacstrap()
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			err = src.Fstab()
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			err = src.Grub()
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			err = src.Keymap()
 			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			if conf.PostInstallChrootCommands != "" {
 				err = sh.Cmd(f("echo exit|echo %v|arch-chroot /mnt", conf.PostInstallChrootCommands))
 				if err != nil {
+					fmt.Println(err)
 					return
 				}
 			}
@@ -63,16 +71,17 @@ func main() {
 			if conf.ArchChroot {
 				err = sh.Cmd("arch-chroot /mnt")
 				if err != nil {
+					fmt.Println(err)
 					return
 				}
 			}
 			if conf.Reboot {
 				err = sh.Cmd("reboot")
 				if err != nil {
+					fmt.Println(err)
 					return
 				}
 			}
 		}
 	}
-
 }
