@@ -3,3 +3,4 @@ test.*
 *.exe
 test*
 config.yml
+ArchLinuxInstaller
