@@ -1,0 +1,33 @@
+
+custom_pacman_config: true
+keyboard: en
+wifi:
+  state: false
+  name: "''"
+  adaptator: ''
+  password: "''"
+partitions:
+  boot:
+    partition: "/dev/"
+    format: false
+    filesystem: fat32
+  root:
+    partition: "/dev/"
+    format: false
+    filesystem: ext4
+  home:
+    partition: "/dev/"
+    format: false
+    filesystem: ext4
+  swap:
+    partition: "/dev/"
+    format: false
+grub_install_disk: "/dev/"
+pacstrap_skip: false
+additional_packages: ''
+uefi: false
+arch-chroot: false
+post_install_commands: ''
+post_install_chroot_commands: ''
+reboot: false
+
