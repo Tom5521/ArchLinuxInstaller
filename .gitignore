@@ -2,5 +2,4 @@
 test.*
 *.exe
 test*
-
-
+config.yml

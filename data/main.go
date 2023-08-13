@@ -70,7 +70,7 @@ func GetYamldata() yamlfile {
 		if CheckDir(filename) {
 			color.Green.Println("config file created!!!")
 		}
-		return GetYamldata()
+		os.Exit(0)
 	}
 	file, err := os.ReadFile(filename)
 	if err != nil {
