@@ -4,3 +4,4 @@ test.*
 test*
 config.yml
 ArchLinuxInstaller
+pacman.conf
