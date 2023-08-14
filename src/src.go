@@ -50,7 +50,7 @@ Include = /etc/pacman.d/mirrorlist
 Include = /etc/pacman.d/mirrorlist`
 )
 
-func Format() error {
+func Format() {
 	var err error
 	// Set conditionals
 	var (
@@ -99,9 +99,8 @@ func Format() error {
 			fmGreen("Swap Maked successfully")
 		}
 	}
-	return nil
 }
-func Mount() error {
+func Mount() {
 	var err error
 	// Mount partitions
 	fmYellow("mounting Root...")
@@ -170,10 +169,9 @@ func Mount() error {
 			fmGreen("Swap setted.")
 		}
 	}
-	return nil
 }
 
-func PacmanConf() error {
+func PacmanConf() {
 	if conf.CustomPacmanConfig && !data.CheckDir("pacman.conf") {
 		fmYellow("No custom pacman conf found... Creatig a new one...")
 		file, err := os.Create("pacman.conf")
@@ -198,10 +196,9 @@ func PacmanConf() error {
 	} else {
 		fmYellow("pacman.conf already pasted...")
 	}
-	return nil
 }
 
-func Wifi() error {
+func Wifi() {
 	var err error
 	checkAdaptator, _ := sh.Out("ip link")
 	if wifi.State {
@@ -229,10 +226,9 @@ func Wifi() error {
 		}
 		wifi_pkg = "networkmanger iwd"
 	}
-	return nil
 }
 
-func Pacstrap() error {
+func Pacstrap() {
 	if !conf.PacstrapSkip {
 		fmYellow("Executing pacstrap...")
 		err := sh.Cmd(f("pacstrap /mnt base base-devel grub git efibootmgr dialog wpa_supplicant nano linux linux-headers linux-firmware %v %v", wifi_pkg, conf.AdditionalPackages))
@@ -244,37 +240,38 @@ func Pacstrap() error {
 	} else {
 		fmYellow("Skipping pacstrap...")
 	}
-	return nil
 }
 
-func Fstab() error {
+func Fstab() {
 	fmYellow("Generating Fstab...")
 	err := sh.Cmd("genfstab -pU /mnt >> /mnt/etc/fstab")
 	if err != nil {
 		fmRed("Error Creating fstab")
 	} else {
-		fmGreen("Fstab created")
+		fmGreen("Fstab created successfully!")
 	}
-	return nil
+
 }
 
-func Grub() error {
+func Grub() {
 	var err error
 	fmYellow("Installing grub...")
 	if !conf.Uefi {
 		err = sh.Cmd(f("echo exit|echo grub-install %v|arch-chroot /mnt", conf.GrubInstallDisk))
-		if err != nil {
-			fmRed("Error installing grub")
-		}
 	} else {
 		err = sh.Cmd(f("echo exit|echo grub-install %v --efi-directory /efi|arch-chroot /mnt", conf.GrubInstallDisk))
-		if err != nil {
-			fmRed("Error installing grub")
-		}
 	}
+	if err != nil {
+		fmRed("Error installing grub")
+	} else {
+		fmGreen("Grub installed successfully!")
+	}
+
 	err = sh.Cmd("echo exit|echo grub-mkconfig -o /boot/grub/grub.cfg|arch-chroot /mnt")
 	if err != nil {
 		fmRed("Error in grub-mkconfig...")
+	} else {
+		fmGreen("grub-mkconfig maked successfully!")
 	}
 	if conf.PostInstallCommands != "" {
 		err = sh.Cmd(conf.PostInstallChrootCommands)
@@ -282,10 +279,10 @@ func Grub() error {
 			fmRed("Error in post install commands...")
 		}
 	}
-	return nil
+
 }
 
-func Keymap() error {
+func Keymap() {
 	keys, _ := sh.Out("localectl list-keymaps")
 	if strings.Contains(conf.Keyboard, keys) {
 		err := sh.Cmd(f("echo exit|echo echo KEYMAP=%v > /mnt/etc/vconsole.conf|arch-chroot /mnt", conf.Keyboard))
@@ -295,5 +292,27 @@ func Keymap() error {
 	} else {
 		fmRed("WARNING:keyboard specification not exist")
 	}
-	return nil
+}
+
+func FinalCmds() {
+	var err error
+	if conf.PostInstallChrootCommands != "" {
+		err = sh.Cmd(f("echo exit|echo %v|arch-chroot /mnt", conf.PostInstallChrootCommands))
+		if err != nil {
+			fmRed("Error in post-install-chroot cmds")
+		}
+	}
+	fmRed("please use the command \"passwd --root /mnt\" to set the root password before rebooting.")
+	if conf.ArchChroot {
+		err = sh.Cmd("arch-chroot /mnt")
+		if err != nil {
+			fmRed("Error using arch-chroot.")
+		}
+	}
+	if conf.Reboot {
+		err = sh.Cmd("reboot")
+		if err != nil {
+			fmRed("Error in... in... Reboot? wtf")
+		}
+	}
 }
