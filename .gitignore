@@ -5,3 +5,4 @@ test*
 config.yml
 ArchLinuxInstaller
 pacman.conf
+.viminfo
