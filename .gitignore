@@ -1,9 +1,9 @@
 *.test
 test.*
 *.exe
-test*
 config.yml
 ArchLinuxInstaller
 pacman.conf
 .viminfo
 builds
+.zcompdump

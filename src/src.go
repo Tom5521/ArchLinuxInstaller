@@ -7,19 +7,22 @@ import (
 
 	"github.com/Tom5521/ArchLinuxInstaller/data"
 	"github.com/Tom5521/MyGolangTools/commands"
+	"github.com/Tom5521/MyGolangTools/file"
 	"github.com/gookit/color"
 )
 
 var (
+	// Functions
+	sh       = commands.Sh{}
+	f        = fmt.Sprintf // Set a more comfortable alias for fmt.Sprintf()
+	fmRed    = color.Red.Println
+	fmGreen  = color.Green.Println
+	fmYellow = color.Yellow.Println
+	// Data
 	conf       = data.GetYamldata()
 	partitions = conf.Partitions
 	wifi       = conf.Wifi
-	sh         = commands.Sh{}
-	f          = fmt.Sprintf
 	wifi_pkg   string
-	fmRed      = color.Red.Println
-	fmGreen    = color.Green.Println
-	fmYellow   = color.Yellow.Println
 	pacmanConf = `
 #Pacman-config-modifyed by Tom5521 ---YES---THATS---MODIFIED---
 
@@ -112,7 +115,7 @@ func Mount() {
 	}
 	if conf.Uefi {
 		fmYellow("uefi is true")
-		if !data.CheckDir("/mnt/efi") {
+		if check_efi, _ := file.CheckFile("/mnt/efi"); !check_efi {
 			err = os.Mkdir("/mnt/efi", os.ModePerm)
 			if err != nil {
 				fmRed("Error making /mnt/efi")
@@ -127,7 +130,7 @@ func Mount() {
 		} else {
 			fmGreen("Boot mounted successfully!")
 		}
-	} else if !data.CheckDir("/mnt/boot") {
+	} else if check_Boot, _ := file.CheckFile("/mnt/boot"); !check_Boot {
 		err = os.Mkdir("/mnt/boot", os.ModePerm)
 		if err != nil {
 			fmRed("Error making /mnt/boot")
@@ -143,7 +146,7 @@ func Mount() {
 		}
 	}
 	if partitions.Home.Partition != "" {
-		if !data.CheckDir("/mnt/home") {
+		if checkdir, _ := file.CheckFile("/mnt/home"); !checkdir {
 			err = os.Mkdir("/mnt/home", os.ModePerm)
 			if err != nil {
 				fmRed("Error making /mnt/home")
@@ -172,22 +175,18 @@ func Mount() {
 }
 
 func PacmanConf() {
-	if conf.CustomPacmanConfig && !data.CheckDir("pacman.conf") {
+	if check_pacman_cfg, _ := file.CheckFile("pacman.conf"); conf.CustomPacmanConfig && !check_pacman_cfg {
 		fmYellow("No custom pacman conf found... Creatig a new one...")
-		file, err := os.Create("pacman.conf")
+		err := file.ReWriteFile("pacman.conf", pacmanConf)
 		if err != nil {
-			fmRed("Error Creating new pacman.conf file")
-		}
-		_, err = file.WriteString(pacmanConf)
-		if err != nil {
-			fmRed("Error writing new pacman.conf")
+			fmRed("Error creating new pacman.conf")
 		} else {
 			fmGreen("pacman.conf created successfully!")
 		}
 	}
-	pacmanfl, _ := os.ReadFile("/etc/pacman.conf")
+	pacmanfl, _ := file.ReadFileCont("/etc/pacman.conf")
 	if conf.CustomPacmanConfig && !strings.Contains("---YES---THATS---MODIFIED---", string(pacmanfl)) {
-		err := sh.Cmd("cp pacman.conf /etc/")
+		err := file.ReWriteFile("/etc/pacman.conf", pacmanConf)
 		if err != nil {
 			fmRed("Error copying pacman.conf file")
 		} else {

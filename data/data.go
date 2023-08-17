@@ -4,23 +4,17 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Tom5521/MyGolangTools/file"
 	"github.com/gookit/color"
 	"gopkg.in/yaml.v3"
 )
 
 var (
-	Yellow   = color.FgYellow.Render
-	Red      = color.FgRed.Render
-	filename = "config.yml"
+	Yellow    = color.FgYellow.Render
+	Red       = color.FgRed.Render
+	Pfilename = filename
+	filename  = "config.yml"
 )
-
-func CheckDir(dir string) bool {
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return false
-	} else {
-		return true
-	}
-}
 
 type yamlfile struct {
 	CustomPacmanConfig bool   `yaml:"custom_pacman_config"`
@@ -64,15 +58,15 @@ type yamlfile struct {
 
 func GetYamldata() yamlfile {
 	yamldata := yamlfile{}
-	if !CheckDir(filename) {
+	if check, _ := file.CheckFile(filename); !check {
 		fmt.Printf(Red(filename+" not found...") + Yellow("Creating a new one...\n"))
 		NewYamlFile()
-		if CheckDir(filename) {
+		if newcheck, _ := file.CheckFile(filename); newcheck {
 			color.Green.Println("config file created!!!")
 		}
 		os.Exit(0)
 	}
-	file, err := os.ReadFile(filename)
+	file, err := file.ReadFileCont(filename)
 	if err != nil {
 		color.Red.Println("Error reading " + filename)
 	}
@@ -85,18 +79,12 @@ func GetYamldata() yamlfile {
 
 func NewYamlFile() {
 	yamlstruct := yamlfile{}
-	file, err := os.Create(filename)
-	if err != nil {
-		color.Red.Println("Error creating " + filename)
-		return
-	}
-	defer file.Close()
 	data, err := yaml.Marshal(yamlstruct)
 	if err != nil {
 		color.Red.Println("Error Marshalling config file")
 		return
 	}
-	_, err = file.WriteString(string(data))
+	err = file.ReWriteFile(filename, string(data))
 	if err != nil {
 		color.Red.Println("Error writing the data in the new yml file")
 		return
