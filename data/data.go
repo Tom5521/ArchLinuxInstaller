@@ -46,6 +46,7 @@ type yamlfile struct {
 			Format    bool   `yaml:"format"`
 		} `yaml:"swap"`
 	} `yaml:"partitions"`
+	Password                  string `yaml:"passwd"`
 	GrubInstallDisk           string `yaml:"grub_install_disk"`
 	PacstrapSkip              bool   `yaml:"pacstrap_skip"`
 	AdditionalPackages        string `yaml:"additional_packages"`
