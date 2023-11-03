@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/Tom5521/ArchLinuxInstaller/data"
 	"github.com/Tom5521/CmdRunTools/command"
@@ -262,7 +263,7 @@ func Wifi() {
 				fmGreen("Connected to " + wifi.Name)
 			}
 		} else {
-			Error("Warning: Adaptator not found")
+			Warn("Adaptator not found")
 		}
 		wifi_pkg = "networkmanger iwd"
 	}
@@ -389,10 +390,25 @@ func FinalCmds() {
 			Error("Error using arch-chroot.")
 		}
 	}
-	if conf.Reboot {
+
+}
+
+func Reboot() {
+	if strings.Contains(args, "-noreboot") {
+		return
+	}
+	var err error
+	if !conf.Reboot {
 		err = sh.SetAndRun("reboot")
 		if err != nil {
 			Error("Error in... in... Reboot? wtf")
+			for i := 5; i != 0; i-- {
+				time.Sleep(1 * time.Second)
+				fmt.Print(f("\rRetrying in...%v seconds", i))
+				if i == 1 {
+					Reboot()
+				}
+			}
 		}
 	}
 }

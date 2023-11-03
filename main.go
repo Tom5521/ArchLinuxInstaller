@@ -6,10 +6,14 @@ import (
 
 	"github.com/Tom5521/ArchLinuxInstaller/data"
 	"github.com/Tom5521/ArchLinuxInstaller/src"
-	"github.com/Tom5521/MyGolangTools/commands"
+	"github.com/Tom5521/CmdRunTools/command"
 )
 
-var sh = commands.Sh{}
+var sh = func() command.UnixCmd {
+	cmd := command.Cmd("")
+	cmd.CustomStd(true, true, true)
+	return cmd
+}()
 
 var HelpStr = `
 Usage:
@@ -17,6 +21,8 @@ Usage:
 
 Arguments:
 - help				Print this text
+
+- version			Print the current version of the binary
 
 - install			Run all the nesesary functions to install completely Arch Linux 
 
@@ -55,6 +61,7 @@ Argument options will be applied before the config fil
 
 -nokeymap			Don't config the keymap for the new system
 
+-noreboot			Don't reboot the system after the prosess
 `
 
 func PrintHelp() {
@@ -67,6 +74,8 @@ func main() {
 		return
 	}
 	switch os.Args[1] {
+	case "version":
+		fmt.Println()
 	case "help":
 		PrintHelp()
 	case "passwd":
@@ -85,6 +94,7 @@ func main() {
 		src.Keymap()
 		src.ConfigRootPasswd()
 		src.FinalCmds()
+		src.Reboot()
 	case "pacstrap":
 		src.Wifi()
 		src.PacmanConf()
@@ -98,7 +108,7 @@ func main() {
 		src.Mount()
 	case "newconfig":
 		data.NewYamlFile()
-		err := sh.Cmd("vim " + data.Pfilename)
+		err := sh.SetAndRun("vim " + data.Pfilename)
 		if err != nil {
 			src.Error("Error oppening vim.\n" + err.Error())
 		}
