@@ -356,7 +356,7 @@ func ConfigRootPasswd() {
 	if strings.Contains(args, "-nopasswd") {
 		return
 	}
-
+	fmYellow("Setting the root password:", conf.Password)
 	cmd := exec.Command("chpasswd", "-R", "/mnt")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -368,8 +368,9 @@ func ConfigRootPasswd() {
 	}()
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
 		Error("Error setting the password;" + err.Error())
+	} else {
+		fmGreen("root password setted successfully!")
 	}
 
 }
