@@ -55,6 +55,7 @@ Argument options will be applied before the config fil
 
 -nokeymap			Don't config the keymap for the new system
 
+-noreboot			Don't reboot the system after the prosess
 `
 
 func PrintHelp() {
@@ -85,6 +86,7 @@ func main() {
 		src.Keymap()
 		src.ConfigRootPasswd()
 		src.FinalCmds()
+		src.Reboot()
 	case "pacstrap":
 		src.Wifi()
 		src.PacmanConf()
