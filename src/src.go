@@ -16,8 +16,8 @@ import (
 
 var (
 	// Functions
-	sh = func() command.UnixCmd {
-		cmd := command.Cmd("")
+	sh = func() command.Cmd {
+		cmd := command.Cmd{}
 		cmd.CustomStd(true, true, true)
 		//cmd.RunWithShell(true)
 		return cmd
@@ -93,6 +93,7 @@ func Format() {
 		swap = partitions.Swap.Format && partitions.Swap.Partition != ""
 	)
 	// Format partitions
+	sh.CustomStd(false, false, true)
 	if boot {
 		fmYellow(f("Formatting Boot <%v> fat32", partitions.Boot.Partition))
 		err = sh.SetAndRun("mkfs.vfat -F 32 " + partitions.Boot.Partition)
@@ -342,8 +343,7 @@ func Keymap() {
 		fmt.Println(err)
 	}
 	if strings.Contains(keys, conf.Keyboard) {
-
-		err := sh.SetAndRun(f("echo exit|echo echo KEYMAP=%v > /mnt/etc/vconsole.conf|arch-chroot /mnt", conf.Keyboard))
+		err := sh.SetAndRun(f("echo KEYMAP=%v > /mnt/etc/vconsole.conf", conf.Keyboard))
 		if err != nil {
 			Error("Error setting KEYMAP in vconsole.conf")
 		}
@@ -379,7 +379,8 @@ func ConfigRootPasswd() {
 func FinalCmds() {
 	var err error
 	if conf.PostInstallChrootCommands != "" {
-		err = sh.SetAndRun(f("echo exit|echo %v|arch-chroot /mnt", conf.PostInstallChrootCommands))
+		sh.SetChroot("/mnt")
+		err = sh.SetAndRun(conf.PostInstallChrootCommands)
 		if err != nil {
 			Error("Error in post-install-chroot cmds")
 		}
