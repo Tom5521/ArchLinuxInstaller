@@ -9,8 +9,8 @@ import (
 	"github.com/Tom5521/CmdRunTools/command"
 )
 
-var sh = func() command.UnixCmd {
-	cmd := command.Cmd("")
+var sh = func() command.Cmd {
+	cmd := command.Cmd{}
 	cmd.CustomStd(true, true, true)
 	return cmd
 }()
