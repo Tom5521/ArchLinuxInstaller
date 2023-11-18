@@ -1,4 +1,4 @@
-# ArchLinux Installer (writed in go)
+# ArchLinux Installer (written in go)
 
 ## Usage
 
