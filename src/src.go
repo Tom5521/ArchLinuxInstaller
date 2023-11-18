@@ -1,6 +1,7 @@
 package src
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -15,9 +16,23 @@ import (
 )
 
 var (
+	NoPart       *bool = flag.Bool("nopart", false, "Skip the partitionating prosess (not open cfdisk)")
+	NoGrub             = flag.Bool("nogrub", false, "Don't install Grub")
+	NoWifi             = flag.Bool("nowifi", false, "Don't configure for wifi")
+	NoFstab            = flag.Bool("nofstab", false, "Don't generate a fstab for the new system")
+	NoKeymap           = flag.Bool("nokeymap", false, "Don't config the keymap for the new system")
+	NoReboot           = flag.Bool("noreboot", false, "Don't reboot the system after the prosess")
+	NoPasswd           = flag.Bool("nopasswd", false, "Skip the passwd setting")
+	NoPacstrap         = flag.Bool("nopacstrap", false, "Skip the pacstrap process")
+	NoPacmanConf       = flag.Bool("nopacmanconf", false, "Don't copy the temporal pacman.conf for best performance in the pacstrap")
+	NoMount            = flag.Bool("nomount", false, "Don't mount the partitions")
+	NoFormat           = flag.Bool("noformat", false, "Don't format the partitions")
+)
+
+var (
 	// Functions
-	sh = func() command.UnixCmd {
-		cmd := command.Cmd("")
+	sh = func() command.Cmd {
+		cmd := command.Cmd{}
 		cmd.CustomStd(true, true, true)
 		//cmd.RunWithShell(true)
 		return cmd
@@ -27,7 +42,6 @@ var (
 	fmGreen  = color.Green.Println
 	fmYellow = color.Yellow.Println
 	// Data
-	args       = strings.Join(os.Args, " ")
 	conf       = data.GetYamldata()
 	partitions = conf.Partitions
 	wifi       = conf.Wifi
@@ -70,7 +84,7 @@ func Warn(err string) {
 }
 
 func Partitioning() {
-	if strings.Contains(args, "-nopart") {
+	if *NoPart {
 		return
 	}
 	var err error
@@ -81,7 +95,7 @@ func Partitioning() {
 }
 
 func Format() {
-	if strings.Contains(args, "-noformat") {
+	if *NoFormat {
 		return
 	}
 	var err error
@@ -93,6 +107,7 @@ func Format() {
 		swap = partitions.Swap.Format && partitions.Swap.Partition != ""
 	)
 	// Format partitions
+	sh.CustomStd(false, false, true)
 	if boot {
 		fmYellow(f("Formatting Boot <%v> fat32", partitions.Boot.Partition))
 		err = sh.SetAndRun("mkfs.vfat -F 32 " + partitions.Boot.Partition)
@@ -134,7 +149,7 @@ func Format() {
 	}
 }
 func Mount() {
-	if strings.Contains(args, "-nomount") {
+	if *NoMount {
 		return
 	}
 	var err error
@@ -208,7 +223,7 @@ func Mount() {
 }
 
 func PacmanConf() {
-	if strings.Contains(args, "-nopacmanconf") {
+	if *NoPacmanConf {
 		return
 	}
 	if check_pacman_cfg, _ := file.CheckFile("pacman.conf"); conf.CustomPacmanConfig && !check_pacman_cfg {
@@ -234,7 +249,7 @@ func PacmanConf() {
 }
 
 func Wifi() {
-	if strings.Contains(args, "-nowifi") {
+	if *NoWifi {
 		return
 	}
 	var err error
@@ -270,7 +285,7 @@ func Wifi() {
 }
 
 func Pacstrap() {
-	if strings.Contains(args, "-nopacstrap") {
+	if *NoPacstrap {
 		return
 	}
 	if !conf.PacstrapSkip {
@@ -287,7 +302,7 @@ func Pacstrap() {
 }
 
 func Fstab() {
-	if strings.Contains(args, "-nofstab") {
+	if *NoFstab {
 		return
 	}
 	fmYellow("Generating Fstab...")
@@ -301,7 +316,7 @@ func Fstab() {
 }
 
 func Grub() {
-	if strings.Contains(args, "-nogrub") {
+	if *NoGrub {
 		return
 	}
 	var err error
@@ -333,7 +348,7 @@ func Grub() {
 }
 
 func Keymap() {
-	if strings.Contains(args, "-nokeymap") {
+	if *NoKeymap {
 		return
 	}
 	sh.UseBashShell(true)
@@ -342,8 +357,7 @@ func Keymap() {
 		fmt.Println(err)
 	}
 	if strings.Contains(keys, conf.Keyboard) {
-
-		err := sh.SetAndRun(f("echo exit|echo echo KEYMAP=%v > /mnt/etc/vconsole.conf|arch-chroot /mnt", conf.Keyboard))
+		err := sh.SetAndRun(f("echo KEYMAP=%v > /mnt/etc/vconsole.conf", conf.Keyboard))
 		if err != nil {
 			Error("Error setting KEYMAP in vconsole.conf")
 		}
@@ -354,7 +368,7 @@ func Keymap() {
 }
 
 func ConfigRootPasswd() {
-	if strings.Contains(args, "-nopasswd") {
+	if *NoPasswd {
 		return
 	}
 	fmYellow("Setting the root password:", conf.Password)
@@ -379,7 +393,8 @@ func ConfigRootPasswd() {
 func FinalCmds() {
 	var err error
 	if conf.PostInstallChrootCommands != "" {
-		err = sh.SetAndRun(f("echo exit|echo %v|arch-chroot /mnt", conf.PostInstallChrootCommands))
+		sh.SetChroot("/mnt")
+		err = sh.SetAndRun(conf.PostInstallChrootCommands)
 		if err != nil {
 			Error("Error in post-install-chroot cmds")
 		}
@@ -394,7 +409,7 @@ func FinalCmds() {
 }
 
 func Reboot() {
-	if strings.Contains(args, "-noreboot") {
+	if *NoReboot {
 		return
 	}
 	var err error
