@@ -59,7 +59,7 @@ Usage:
 
 ### Configuration
 
-The YAML file is a data structure used to configure the installation parameters of the provided Python script. Below are the available configuration options:
+The YAML file is a data structure used to configure the installation parameters of the script. Below are the available configuration options:
 
 `custom_pacman_config`: A boolean value indicating whether to use a custom pacman configuration. The default value is "false". 
 `keyboard`: Configures the keyboard layout for the installation. The default value is an empty string.
