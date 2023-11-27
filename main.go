@@ -10,15 +10,15 @@ import (
 	"github.com/Tom5521/CmdRunTools/command"
 )
 
-var sh = func() command.Cmd {
-	cmd := command.Cmd{}
-	cmd.CustomStd(true, true, true)
-	return cmd
-}()
-
 func main() {
+	var sh = func() command.Cmd {
+		cmd := command.Cmd{}
+		cmd.CustomStd(true, true, true)
+		return cmd
+	}()
+
 	if len(os.Args) == 0 {
-		fmt.Println("Not enough arguments")
+		fmt.Println("Not enough arguments.")
 		return
 	}
 	versionFlag := flag.Bool("version", false, "Show the version of the binary")
@@ -45,18 +45,14 @@ func main() {
 	}
 
 	parserFlags := []bool{*installFlag, *pacstrapFlag, *grubFlag, *passwdFlag, *partFlag, *mountFlag}
-	catchBadFlags := func(flags []bool) (HaveBadFlags bool) {
+	catchBadFlags := func(flags []bool) bool {
 		var trueValues int
-		for _, parser := range parserFlags {
+		for _, parser := range flags {
 			if parser {
 				trueValues++
 			}
 		}
-		if trueValues > 1 {
-			return true
-		} else {
-			return false
-		}
+		return trueValues > 1
 	}
 
 	if catchBadFlags(parserFlags) {
@@ -110,5 +106,4 @@ Usage:
 	if *mountFlag {
 		src.Mount()
 	}
-
 }

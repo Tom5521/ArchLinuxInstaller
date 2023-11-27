@@ -37,8 +37,7 @@ var (
 		//cmd.RunWithShell(true)
 		return cmd
 	}()
-	f        = fmt.Sprintf // Set a more comfortable alias for fmt.Sprintf()
-	fmRed    = color.Red.Println
+	f        = fmt.Sprintf // Set a more comfortable alias for fmt.Sprintf)
 	fmGreen  = color.Green.Println
 	fmYellow = color.Yellow.Println
 	// Data
@@ -87,8 +86,8 @@ func Partitioning() {
 	if *NoPart {
 		return
 	}
-	var err error
-	err = sh.SetAndRun("cfdisk " + conf.GrubInstallDisk)
+
+	err := sh.SetAndRun("cfdisk " + conf.GrubInstallDisk)
 	if err != nil {
 		Error("Error starting cfdisk")
 	}
@@ -305,8 +304,10 @@ func Fstab() {
 	if *NoFstab {
 		return
 	}
+
 	fmYellow("Generating Fstab...")
 	err := sh.SetAndRun("genfstab -pU /mnt >> /mnt/etc/fstab")
+
 	if err != nil {
 		Error("Error Creating fstab")
 	} else {
@@ -319,13 +320,16 @@ func Grub() {
 	if *NoGrub {
 		return
 	}
+
 	var err error
+
 	fmYellow("Installing grub...")
 	if !conf.Uefi {
 		err = sh.SetAndRun(f("echo exit|echo grub-install %v|arch-chroot /mnt", conf.GrubInstallDisk))
 	} else {
 		err = sh.SetAndRun(f("echo exit|echo grub-install %v --efi-directory /efi|arch-chroot /mnt", conf.GrubInstallDisk))
 	}
+
 	if err != nil {
 		Error("Error installing grub")
 	} else {
@@ -333,18 +337,19 @@ func Grub() {
 	}
 
 	err = sh.SetAndRun("echo exit|echo grub-mkconfig -o /boot/grub/grub.cfg|arch-chroot /mnt")
+
 	if err != nil {
 		Error("Error in grub-mkconfig...")
 	} else {
 		fmGreen("grub-mkconfig maked successfully!")
 	}
+
 	if conf.PostInstallCommands != "" {
 		err = sh.SetAndRun(conf.PostInstallChrootCommands)
 		if err != nil {
 			Error("Error in post install commands...")
 		}
 	}
-
 }
 
 func Keymap() {
@@ -364,7 +369,6 @@ func Keymap() {
 	} else {
 		Warn("Keyboard specification not exist")
 	}
-
 }
 
 func ConfigRootPasswd() {
@@ -379,7 +383,10 @@ func ConfigRootPasswd() {
 	}
 	go func() {
 		defer stdin.Close()
-		io.WriteString(stdin, fmt.Sprintf("root:%v", conf.Password))
+		_, err := io.WriteString(stdin, fmt.Sprintf("root:%v", conf.Password))
+		if err != nil {
+			Error(err.Error())
+		}
 	}()
 	err = cmd.Run()
 	if err != nil {
@@ -387,7 +394,6 @@ func ConfigRootPasswd() {
 	} else {
 		fmGreen("root password setted successfully!")
 	}
-
 }
 
 func FinalCmds() {
@@ -405,7 +411,6 @@ func FinalCmds() {
 			Error("Error using arch-chroot.")
 		}
 	}
-
 }
 
 func Reboot() {
@@ -419,7 +424,7 @@ func Reboot() {
 			Error("Error in... in... Reboot? wtf")
 			for i := 5; i != 0; i-- {
 				time.Sleep(1 * time.Second)
-				fmt.Print(f("\rRetrying in...%v seconds", i))
+				fmt.Printf("\rRetrying in...%v seconds", i)
 				if i == 1 {
 					Reboot()
 				}
