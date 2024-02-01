@@ -24,29 +24,30 @@ var (
 	NoReboot           = flag.Bool("noreboot", false, "Don't reboot the system after the prosess")
 	NoPasswd           = flag.Bool("nopasswd", false, "Skip the passwd setting")
 	NoPacstrap         = flag.Bool("nopacstrap", false, "Skip the pacstrap process")
-	NoPacmanConf       = flag.Bool("nopacmanconf", false, "Don't copy the temporal pacman.conf for best performance in the pacstrap")
-	NoMount            = flag.Bool("nomount", false, "Don't mount the partitions")
-	NoFormat           = flag.Bool("noformat", false, "Don't format the partitions")
+	NoPacmanConf       = flag.Bool("nopacmanconf", false,
+		"Don't copy the temporal pacman.conf for best performance in the pacstrap")
+	NoMount  = flag.Bool("nomount", false, "Don't mount the partitions")
+	NoFormat = flag.Bool("noformat", false, "Don't format the partitions")
 )
 
 var (
-	// Functions
+	// Functions.
 	sh = func() command.Cmd {
 		cmd := command.Cmd{}
 		cmd.CustomStd(true, true, true)
-		//cmd.RunWithShell(true)
+		// cmd.RunWithShell(true)
 		return cmd
 	}()
 	f        = fmt.Sprintf // Set a more comfortable alias for fmt.Sprintf)
 	fmGreen  = color.Green.Println
 	fmYellow = color.Yellow.Println
-	// Data
+	// Data.
 	conf       = data.GetYamldata()
 	partitions = conf.Partitions
 	wifi       = conf.Wifi
-	wifi_pkg   string
+	wifiPkg    string
 	pacmanConf = `
-#Pacman-config-modifyed by Tom5521 ---YES---THATS---MODIFIED---
+#Pacman-config-modified by Tom5521 ---YES---THATS---MODIFIED---
 
 [options]
 HoldPkg     = pacman glibc
@@ -279,7 +280,7 @@ func Wifi() {
 		} else {
 			Warn("Adaptator not found")
 		}
-		wifi_pkg = "networkmanger iwd"
+		wifiPkg = "networkmanger iwd"
 	}
 }
 
@@ -289,7 +290,7 @@ func Pacstrap() {
 	}
 	if !conf.PacstrapSkip {
 		fmYellow("Executing pacstrap...")
-		err := sh.SetAndRun(f("pacstrap /mnt base base-devel grub git efibootmgr dialog wpa_supplicant nano linux linux-headers linux-firmware %v %v", wifi_pkg, conf.AdditionalPackages))
+		err := sh.SetAndRun(f("pacstrap /mnt base base-devel grub git efibootmgr dialog wpa_supplicant nano linux linux-headers linux-firmware %v %v", wifiPkg, conf.AdditionalPackages))
 		if err != nil {
 			Error("Error in pacstrap process")
 		} else {
@@ -313,7 +314,6 @@ func Fstab() {
 	} else {
 		fmGreen("Fstab created successfully!")
 	}
-
 }
 
 func Grub() {
